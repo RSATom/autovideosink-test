@@ -1,0 +1,57 @@
+name: autovideosink-test
+base: core22
+version: git
+summary: Test for GStreamer's `autovideosink` inside snap
+description: Experimenting with ability to use `autovideosink` inside snap on arm devices (like Raspberry Pi) without X11 Server running.
+license: GPL-3.0
+grade: stable
+confinement: strict
+
+architectures:
+  - build-on: armhf
+  - build-on: arm64
+
+environment:
+  GST_DEBUG: 3
+  GST_DEBUG_NO_COLOR: 1
+  GST_PLUGIN_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/gstreamer-1.0
+  GST_PLUGIN_SYSTEM_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/gstreamer-1.0
+  GST_PLUGIN_SCANNER: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/gstreamer1.0/gstreamer-1.0/gst-plugin-scanner
+
+layout:
+  /etc/glvnd:
+    bind: $SNAP/etc/glvnd
+  /usr/share/glvnd:
+    bind: $SNAP/usr/share/glvnd
+  /usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/dri:
+    bind: $SNAP/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/dri
+  /usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/pulseaudio:
+    bind: $SNAP/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/pulseaudio
+
+parts:
+  test:
+    plugin: cmake
+    source: .
+    cmake-parameters:
+      - -DCMAKE_INSTALL_PREFIX=/opt/${SNAPCRAFT_PROJECT_NAME}
+    build-packages:
+      - g++
+      - make
+      - libgstreamer1.0-dev
+    stage-packages:
+      - libpulse0
+      - libegl-mesa0
+      - libglu1-mesa
+      - libgl1-mesa-dri
+      - freeglut3
+      - va-driver-all
+      - gstreamer1.0-plugins-base
+      - gstreamer1.0-plugins-good
+      - gstreamer1.0-gl
+
+apps:
+  test:
+    command: opt/${SNAPCRAFT_PROJECT_NAME}/bin/autovideosink-test
+    daemon: simple
+    plugs:
+      - opengl
